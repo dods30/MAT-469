@@ -1,0 +1,83 @@
+---
+title: "in-classLab1"
+author: "Marco Dodson"
+date: "2024-04-02"
+output: html_document
+---
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## (b) Delete all existing variables first.
+
+```{r}
+rm(list=ls()) # Remove all variabls from the environment
+```
+
+## (c) Create an nxd matrix to record the numbers of d people for n games 
+
+```{r}
+n=3 # number of games 
+d=5 # number of people 
+game.numbers=matrix(NA,nrow = n,ncol=d) # create empty matrix to store the numbers 
+```
+
+## (d) Assign the leftmost person with a random number on [0,1].
+
+```{r}
+game.numbers[,1]=runif(n) # assign random numbers of first column of matrix 
+```
+
+## (e) Assign numbers to the rest of people in n games.
+
+```{r}
+for(i in 2:d) { # loop through columns 2 to d 
+    game.numbers[,i]=(game.numbers[,i-1] + runif(n))/2 # compute the average of the prev number and random new number
+}
+```
+
+## (f) Record the winning (1) or losing (0) of each row (game).
+
+```{r}
+game.results=apply(game.numbers,1,function(x)any(x>.6)) # check if any number in each row is greater than .6 
+game.results=as.integer(game.results) # convert the logical values to integers 
+```
+
+## (g) Count the number of times that we win.
+
+```{r}
+number.wins=sum(game.results) #sum up the number of wins 1's in game.results
+```
+
+## (h) Compute the estimated probability.
+
+```{r}
+n<-10000 # increase the number of games to 10,000 for accurate estimate 
+game.numbers=matrix(NA,nrow=n,ncol=d) # create new matrix for larger number of games 
+game.numbers[,1]=runif(n) # assign random numbers of first column of matrix 
+for(i in 2:d){ # loop through columns 2 to d 
+    game.numbers[,i]=(game.numbers[,i-1] + runif(n))/2 # compute the average of the prev number and random new number
+}
+game.results=apply(game.numbers,1,function(x)any(x>.6)) # check if any number in each row is greater than .6 
+game.results=as.integer(game.results) # convert the logical values to integers 
+est.prob=sum(game.results)/n # estimate probability of winning 
+```
+
+## (i) Compute the confidence interval.
+
+```{r}
+CI.low=est.prob-2.58*sqrt(est.prob*(1-est.prob)/n) # lower bounds 
+CI.high=est.prob+2.58*sqrt(est.prob*(1-est.prob)/n) # upper bounds 
+```
+
+We are 99% confident that the probability of winning the game falls between ``r CI.low`` and ``r CI.high``
+The estimated probability of winning the game is ``r est.prob``.
+
+## The result should change each time the program is run becuse the numbers are generated randomly. The Monte Carlo method relies on generating a large number of random samples to estimate the probability. each run generates a new set of random numbers. 
