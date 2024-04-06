@@ -1,0 +1,72 @@
+---
+title: "Homework1"
+author: "Marco Dodson"
+date: "2024-04-06"
+output: html_document
+---
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## Question 1: 
+### a - simulate the lottery process large number of times 
+### b - for each simulation run you randomly assign the winning ticket to one of the nine, simulat the selection process for the first seven people then check if the eighth person has winning ticket
+### c - count the number of times the eighth person wins out of the total number of simulations
+### d - divide the count by the totla number of simulations to obtain the estimated probability 
+
+## Question 2:
+
+```{r}
+rm(list=ls()) # Remove all variabls from the environment
+```
+
+```{r}
+set.seed(123)
+```
+
+```{r}
+# set the number of simulations and people 
+n_simulations <- 10000
+n_people <- 6 
+
+# initialize a matrix to store numbers for each person in each simulation 
+numbers_matrix <- matrix(0, nrow=n_simulations, ncol=n_people)
+```
+
+```{r}
+#simulate the game n simulation times 
+for (i in 1:n_simulations){
+    numbers_matrix[i, ] <- rnorm(n_people) # generate random numbers for each person and store them in matrix
+
+    for (j in 2:n_people){
+        numbers_matrix[i,j] <- numbers_matrix[i,j] * numbers_matrix[i,j-1] # calculate the product of numbers for each person 
+    }
+}
+
+```
+
+```{r}
+game_results <- apply(numbers_matrix, 1, function(x) any (x>0)) # check if any number is larger than 0 in each simulation
+```
+
+```{r}
+win_probability <- mean(game_results) # estimate the probability of winning 
+```
+
+```{r}
+ci_lower <- win_probability - qnorm(0.995) * sqrt(win_probability * (1 - win_probability)/ n_simulations) # confidence interval lower bound 
+ci_upper <- win_probability + qnorm(0.995) * sqrt(win_probability * (1 - win_probability)/ n_simulations) # confidence upper bound 
+
+```
+
+
+# results 
+cat("Estimated probability of winning:", win_probability, "\n")
+cat("99% Confidence Interval", ci_lower, "-",ci_upper, "\n")
