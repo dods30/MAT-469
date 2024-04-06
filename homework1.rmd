@@ -68,5 +68,5 @@ ci_upper <- win_probability + qnorm(0.995) * sqrt(win_probability * (1 - win_pro
 
 
 # results 
-We are 99% confident that the probability of winning the game falls between ``r ci.lower`` and ``r ci.upper``
+We are 99% confident that the probability of winning the game falls between ``r ci_lower`` and ``r ci_upper``
 The estimated probability of winning the game is ``r win_probability``.
