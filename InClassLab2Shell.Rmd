@@ -1,0 +1,73 @@
+---
+title: "In-ClassLab2"
+author: "Marco Dodson"
+date: "2024-04-10"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=FALSE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output; fig.keep: show all figures or just the last one in an R chunk
+```
+
+## 1. 
+### (a) [the target random variable y is the payout ofthe life insurance policy which is 50000 if life insurance dies within 20 years otherwise 0]
+
+### (b) [the basic random variable x is the survival time of the insured which follows an exponential distribution with mean of 25 years]
+
+### (c) [the function f to link x and y is y = f(x) = {50000 if x < 20 } {0 if x >= 20}]
+
+### (d) [the fair premium is the expected value of y, e(y)]
+
+## 2. [generate large sample of survival times from exponential distribtion, apply the function f to each x to obtain samples of y, estimate the fair premium by calculating sample mean of y, then provide 99% confidence level]
+
+## 3.
+### (a) 
+```{r}
+n = 1000
+x = rexp(n, rate = 1/25)
+```
+
+### (b)
+```{r}
+y = ifelse(x < 20, 50000, 0)
+```
+
+### (c)
+```{r}
+est.premium = mean(y)
+```
+
+### (d)
+```{r}
+est.error = 2.58 * sd(y) / sqrt(n)
+```
+
+### (e) [The estimated fair premium based on a sample size of 1000 is $`r round(est.premium, 2)` with a 99% confidence interval of +/- $`r round(est.error, 2)`]
+
+## 4. 
+```{r}
+n = 1000
+x.initial = rexp(n, rate = 1/25)
+y.initial = ifelse(x.initial < 20, 50000, 0)
+hat.sigma = sd(y.initial)
+epsilon = 5
+c = 1.2
+N = ceiling((2.58 * c * hat.sigma / epsilon)^2)
+```
+The required sample size is ``r N ``.
+
+## 5.
+```{r}
+x = rexp(N, rate = 1/25)
+y =  ifelse(x < 20, 50000, 0)
+est.premium = mean(y)
+est.error = 2.58 * sd(y) / sqrt(N)
+```
+[Based on the required sample size of `r N`, the estimated fair premium is $`r round(est.premium,2)` with a 99% confidence interval of +/- $`r round(est.error,2)`. This has a error tolerance of $5, meaning true price is likely 5 within the estimated value. ]
+
+
