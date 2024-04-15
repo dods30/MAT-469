@@ -1,0 +1,102 @@
+---
+title: "Homework2"
+author: "Marco Dodson"
+date: "2024-04-12"
+output: html_document
+---
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## Question 1 
+### probability of failure within two years: p(X<2) = ∫₀^2 (1/10) * e^(-x/10) dx
+### = -e^(-x/10) |₀^2
+### = -e^(-2/10) + e^(0)
+### = 1 - e^(-0.2)
+### ≈ 0.1813 * 1,000 so 181.30
+
+```{r}
+set.seed(123) 
+```
+
+
+```{r}
+
+##function to caluclate the refund amount 
+refund <- function(x) {
+    ifelse(x < 2, 1000, 0)
+}
+
+```
+
+```{r}
+
+## MC simulation with 10^4 
+n_1 <- 10^4 
+x_1 <- rexp(n_1, rate = 1/10)
+refund_1 <- mean(refund(x_1))
+
+```
+
+```{r}
+
+## MC simulation with 10^6 
+n_2 <- 10^6 
+x_2 <- rexp(n_2, rate = 1/10)
+refund_2 <- mean(refund(x_2))
+
+```
+
+```{r}
+
+## true answer  
+true_refund <- 1000* (1 - exp(-0.2))
+
+```
+
+```{r}
+
+## errors 
+error_1 <- abs(refund_1 - true_refund)
+error_2 <- abs(refund_2 - true_refund)
+
+cat("Estimated refund amount (n = 10^4):", refund_1, "\n")
+cat("Estimated refund amount (n = 10^6):", refund_2, "\n")
+cat("True refund amount:", true_refund, "\n")
+cat("Error (n = 10^4):", error_1, "\n")
+cat("Error (n = 10^6):", error_2, "\n")
+
+```
+
+
+```{r}
+
+## 95 % interval 
+ci_1 <- refund_1 + c(-1,1) * qnorm(.975) * sd(refund(x_1)) / sqrt(n_1)
+ci_2 <- refund_2 + c(-1,1) * qnorm(.975) * sd(refund(x_2)) / sqrt(n_2)
+
+cat("95% CI (n = 10^4):", ci_1[1], ",", ci_1[2], "\n")
+cat("95% CI (n = 10^6):", ci_2[1], ",", ci_2[2], "\n")
+
+```
+
+
+```{r}
+sd_1 <- sd(refund(x_1))
+
+##required size
+error_tol <- .5 
+z <- qnorm(.975)
+n_req <- ceiling((z * sd_1 / error_tol)^2)
+
+cat("Required sample size", n_req, "\n")
+
+```
+
