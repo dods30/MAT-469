@@ -1,0 +1,157 @@
+---
+title: "inClassLab3"
+author: "Marco Dodson"
+date: "2024-04-16"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+```{r}
+set.seed(123)
+```
+
+
+# (a) choose basic random variable z ~ U[0,20], and define the target random variable W 
+## w = 50000 * (20 / 25) * exp (- Z / 25)
+
+
+## (b) Monte carlo estimation with sample size n = 10^3 
+```{r}
+n <- 10^3
+```
+
+## (b-i) Generate a sample of Z (uniform random on 0,20 )
+```{r}
+Z <- runif(n, min = 0, max = 20)
+
+```
+
+
+## (b-ii) Generate a sample of W 
+```{r}
+
+W <- 50000 * (20 / 25) * exp(-Z / 25)
+
+```
+
+## (b-iii) estimate the fair premium 
+```{r}
+fair_premium_estimate <- mean(W)
+
+```
+
+## (b-iv) caluclate the estimation error using 99% interval 
+```{r}
+sigma_hat_W <- sd(W)
+estimation_error <- 2.58 * sigma_hat_W / sqrt(n)
+
+cat("Estimated fair premium (n =", n, "):", fair_premium_estimate, "\n")
+cat("99% confidence interival:", fair_premium_estimate - estimation_error, ",",fair_premium_estimate + estimation_error, "\n")
+
+```
+
+## (c) calculate the required simulation size for an error tolerance 
+```{r}
+epsilon <- 5
+C <- 1.1 
+required_size <- ceiling((2.58 * C * sigma_hat_W / epsilon)^2)
+cat("required simulation size for error tolerance of $5:", required_size, "\n")
+
+```
+
+## (d) compare new with old 
+```{r}
+cat("Previous required simulation size (exponential basic random variable):", 235433630, "\n")
+cat("New required simulation size (uniform basic random variable):", required_size, "\n") 
+```
+
+
+# (2)
+
+## (a) define the parameters
+```{r}
+S <- 50 
+K <- 45
+r <- .03
+sigma <- .20
+T <- .5 
+```
+
+## (b) monte carlo simulation 
+```{r}
+## generate a sample of discounted payoff with n = 10,000
+n_small <- 10000
+z <- rnorm(n_small)
+ST_small <- S * exp((r - .5 * sigma^2) * T + sigma * sqrt(T) * z)
+payoff_small <- pmax(K- ST_small, 0)
+discounted_payoff_small <- exp(-r * T) * payoff_small
+
+```
+
+## esimtate the standard deviation of discounted payoff 
+```{r}
+sigma_hat <- sd(discounted_payoff_small)
+```
+
+## compute the appropriate simulation size 
+```{r}
+Epsilon <- .5
+c <- 1.2
+n_large <- ceiling((2.58 * c * sigma_hat / Epsilon)^2)
+
+```
+
+## generate a sample of discounted payoff with the correct simulation size 
+
+```{r}
+z <- rnorm(n_large)
+ST_large <- S * exp((r - .5 * sigma^2) * T + sigma * sqrt(T) * z)
+payoff_large <- pmax(K - ST_large, 0)
+discounted_payoff_large <- exp(-r * T) * payoff_large
+
+```
+
+## estimate the true price using the mean of discounted payoff 
+```{r}
+put_price_estimate <- mean(discounted_payoff_large)
+
+```
+
+## compute 99% confidence interval 
+```{r}
+error <- 2.58 * sd(discounted_payoff_large) / sqrt(n_large)
+lower_bound <- put_price_estimate - error 
+upper_bound <- put_price_estimate + error
+
+cat("Estimated put option price: $", round(put_price_estimate, 4), "\n")
+cat("99% confidnece interval: [$", round(lower_bound, 4), ",$ ", round(upper_bound, 4),"]\n")
+
+```
+
+
+## (c) compute exact price 
+```{r}
+d1 <- (log(S / K) + (r + .5 * sigma^2) * T) / (sigma * sqrt(T))
+d2 <- d1 - sigma * sqrt(T)
+put_exact_price <- K * exp(-r * T) * pnorm(-d2) - S * pnorm(-d1)
+
+cat("Exact put option price: $", round(put_exact_price, 4), "\n")
+
+```
+
+## (d) compute true error and compare with error tolerance
+```{r}
+true_error <- abs(put_price_estimate - put_exact_price)
+cat("True Error: $", round(true_error, 4), "\n")
+cat("Is the true error smaller than error tolerance?", true_error < Epsilon, "\n")
+
+```
