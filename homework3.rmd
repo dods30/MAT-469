@@ -1,0 +1,85 @@
+---
+title: "Homework3"
+author: "Marco Dodson"
+date: "2024-04-21"
+output: html_document
+---
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## Question 1: Consider the problem of computing µ = E(e^X) where X ∼ N(0, 1), i.e.,
+## (A) µ = E(e^X) = ∫₋∞^∞ e^x * (1 / √(2π)) * e^(-x^2/2) dx - compute the µ by analytic means
+### = MGF is M(t) = E(e^(tX))
+### = for standard normal distro - M(t) = e^(t^2/2)
+### = the relationship is µ = E(e^X) = E(e^(1*X)) = M(1)
+### = plug t =1 in and boom -µ = M(1) = e^(1^2/2) = e^(1/2) ≈ 1.6487
+
+## (B) 
+```{r}
+set.seed(123)
+n <- 10^5 
+X <- rnorm(n)
+mu_hat <- mean(exp(X))
+se <- sd(exp(X)) / sqrt(n)
+ci_lower <- mu_hat - 1.96 * se
+ci_upper <- mu_hat + 1.96 * se
+
+
+cat("Estimated µ:", mu_hat, "\n")
+cat("95%  Confidence Interval: [", ci_lower, ",", ci_upper, "]\n")
+
+```
+
+
+## Question 2: Consider the European call option for an asset price modeled by a geometric Brownian motion with initial asset price $100, interest rate 3%, volatility 30%, and expiry date 1 year from now.
+### (A): Compute the exact/true fair option price (Black-Scholes formula) for strike prices $75, $100, and $130.
+```{r}
+S <- 100 
+r <- .03 
+sigma <- .30 
+T <- 1
+K <- c(75, 100, 130)
+
+d1 <- (log(S / K) + (r + .5 * sigma^2) * T) / (sigma * sqrt(T))
+d2 <- d1 - sigma * sqrt(T)
+
+call_price_exact <- S * pnorm(d1) - K * exp(-r * T) * pnorm(d2)
+
+cat("Exact Call Prices:\n")
+cat(" K = 75: $", round(call_price_exact[1], 4), "\n")
+cat(" K = 100: $", round(call_price_exact[2], 4), "\n")
+cat(" K = 130: $", round(call_price_exact[3], 4), "\n")
+```
+
+### (B): Using simple Monte Carlo simulation with n = 10^5 samples, compute the approximate value of the European call option for the parameter values above. What is the true relative error for each strike price? For which strike price is the relative error largest?
+```{r}
+n <- 10^5 
+Z <- rnorm(n)
+ST <- S * exp((r - .5 * sigma^2) * T + sigma * sqrt(T) * Z)
+call_price_sim <- exp(-r *T) * sapply(K, function(k)pmax(ST - K, 0))
+call_price_estimate <- colMeans(call_price_sim)
+relative_error <- abs(call_price_estimate - call_price_exact) /call_price_exact
+
+cat("Estimated Call Prices:\n")
+cat(" K = 130: $", round(call_price_estimate[1], 4), " (Relative Error:", round(relative_error[1],4), ")\n")
+cat(" K = 130: $", round(call_price_estimate[2], 4), " (Relative Error:", round(relative_error[2],4), ")\n")
+cat(" K = 130: $", round(call_price_estimate[3], 4), " (Relative Error:", round(relative_error[3],4), ")\n")
+```
+
+### (C): Consider the strike price $100. What should be the simulation size with an error tolerance of 30 cents?
+```{r}
+epsilon <- .30
+payoff <- exp(-r * T) * pmax(ST - 100, 0)
+sigma_hat <- sd(payoff)
+n_required <- ceiling((1.96 * sigma_hat / epsilon)^2)
+
+cat("Required simulation size for error tolerance of $.30:", n_required, "\n")
+```
