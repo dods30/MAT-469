@@ -1,0 +1,65 @@
+---
+title: "homework4"
+author: "Marco Dodson"
+date: "2024-04-23"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+# Question 8 
+## (A): Determine the simulation size with an error tolerance of 50 cents 
+### let's use n = (z * σ / ε)^2
+```{r}
+set.seed(123)
+n_init <- 10^4 
+x_init <- runif(n_init, min = 0, max = 2)
+z_init <- 2 * 1000 * (1/10) * exp(-x_init/10)
+sd_init <- sd(z_init)
+
+epsilon <- .05
+Z <- 1.96
+n_req <- ceiling((Z * sd_init / epsilon)^2)
+cat("Required sample size:", n_req, "\n")
+
+```
+
+### (B): I think the sample size I had in problem 4 (d) was 2255413 so this required sample is less 13.59x less to be exact
+
+
+```{r}
+mean_z <- mean(z_init)
+
+ci_lower <- mean_z - 1.96 * sd_init / sqrt(n_req)
+ci_upper <- mean_z + 1.96 * sd_init / sqrt(n_req)
+cat("95% confidence interval: [", ci_lower, ",", ci_upper, "]\n")
+```
+
+## (C): looks like it doesn't contain the true answer -  181.2692
+
+
+
+# Problem 9:
+## (A): derive the inverse function,  F^(-1) of the CDF F(x) = 1 - (2/x)^3, x ≥ 2:
+### Let y = F(x) = 1 - (2/x)^3
+### Solve for x in terms of y:
+### 1 - y = (2/x)^3
+### (1 - y)^(1/3) = 2/x
+### x = 2 / (1 - y)^(1/3)
+### F^(-1)(y) = 2 / (1 - y)^(1/3), 0 ≤ y < 1.
+
+## (B): generate 10 instaces from F(x) using invesrse distribtution transformation method
+```{r}
+N <- 10 
+u <- runif(N)
+x <- 2 / (1-u)^(1/3)
+cat("10 instances: [", x,"]\n")
+```

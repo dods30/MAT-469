@@ -1,0 +1,67 @@
+---
+title: "inClassLab4"
+author: "Marco Dodson"
+date: "2024-04-23"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## (A): 
+### Deriving the inverse function of F(x):
+### F(x) = 1 / (1 + e^(-x))
+### Let y = F(x), then x = F^(-1)(y)
+### y = 1 / (1 + e^(-x))
+### 1 + e^(-x) = 1 / y
+### e^(-x) = 1 / y - 1
+### -x = ln(1 / y - 1)
+### x = -ln(1 / y - 1)
+### F^(-1)(y) = -ln(1 / y - 1)
+
+
+```{r}
+n <- 10^3 
+
+# generate sample of uniform random numbers 
+U <- runif(n)
+# generate sample of x using the inverse distro 
+x <- -log(1 / U - 1)
+
+# generate sampel of Y 
+y <- x^3
+
+# estimate the true mean of Y 
+mu_hat <- mean(y)
+cat("Estimated mean of Y:", mu_hat, "\n")
+```
+
+```{r}
+# construct 99% confidence interval 
+se <- sd(y) / sqrt(n)
+ci_lower <- mu_hat - qnorm(.995) * se
+ci_upper <- mu_hat + qnorm(.995) * se
+cat("99% confidence interval: [", ci_lower, ",", ci_upper, "]\n")
+```
+
+```{r}
+# check if the CI contains true mean 
+contains_true_mean <- (ci_lower <= 0) && (ci_upper >= 0)
+cat("Does this contain the true mean(0)?", contains_true_mean, "\n")
+```
+
+```{r}
+# compute the true absolute error 
+true_mean <- 0 
+true_error <- abs(mu_hat - true_mean)
+cat("True Absolute Error:", true_error, "\n")
+```
+
+### (F): true error is small, indicating the monte carlo sim estimate is close to the true mean. CI contains true mean suggesting estimation is realiable 
