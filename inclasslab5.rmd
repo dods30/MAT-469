@@ -1,0 +1,66 @@
+---
+title: "inclasslab5"
+author: "Marco Dodson"
+date: "2024-04-30"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## (1): 
+### The target distribution's pdf is fX(x) = 6x(1 - x), 0 ≤ x ≤ 1. 
+### The candidate distribution's pdf is fZ(z) = 1, 0 ≤ z ≤ 1. To find the efficiency, we need to calculate:
+### c = 1 / max(fX(x) / fZ(x))
+### The maximum value of fX(x) / fZ(x) occurs at x = 0.5:
+### fX(0.5) / fZ(0.5) = 6 * 0.5 * (1 - 0.5) / 1 = 1.5
+### c = 1 / 1.5 = 2/3 ≈ 0.6667.
+
+
+## (2): Since 0 < c ≤ 1, U[0,1] is a valid candidate distribution
+
+### Define the constants
+
+```{r}
+rm(list=ls())
+n = 10000
+c = 2/3
+```
+
+### Compute the numger of candidate numbers
+
+```{r}
+N = ceiling(n/c*1.1)
+```
+
+### Generate candidate numbers and criterion numbers
+
+```{r}
+z = runif(N)
+w = runif(N)
+```
+
+### Acceptance-rejection procedure
+
+```{r}
+accept.index = which(w <= 4*z**(1-z))
+prex = z[accept.index]
+x = prex[1:n]
+```
+
+### Plot the histogram of the generated numbers and compare with the target distribution.
+
+```{r}
+hist(x, main="Historgram of Generated Numbers", prob=TRUE, ylim=c(0,1.5))
+xfit = seq(0,1,length.out = 100)
+lines(xfit, 6*xfit*(1-xfit), col="red", lwd=2)
+```
+
+[Since the histogram follows the target density curve, this indicates the numbers are indeed drawn from the target distribution]
