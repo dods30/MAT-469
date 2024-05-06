@@ -1,0 +1,53 @@
+---
+title: "homework5"
+author: "Marco Dodson"
+date: "2024-05-06"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+## question 1: 
+### (a)
+### c = 9/16 ~ .5625 
+
+### (b)
+```{r}
+rm(list=ls())
+n = 1000
+c = 9/16
+
+N = n/c
+z = runif(N)
+w = runif(N)
+
+accept.index = which(w <= 12*z^2*(1-z))
+prex = z[accept.index]
+x = prex[1:n]
+```
+
+
+### (c)
+```{r}
+hist(x, main="Histogram of generate numbers", prob=TRUE, ylim=c(0,2))
+xfit = seq(0,1, length.out = 100)
+lines(xfit, 12*xfit^2*(1-xfit), col="red", lwd=2)
+```
+
+## 2
+###  S(t + Δt) = S(t) * exp((r - 0.5σ^2)Δt + σ * sqrt(Δt) * Z)
+### S(0) = 50
+### S(1/12) = 50 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * 2.6328) ≈ 82.1409
+### S(2/12) = 82.1409 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * 0.0828) ≈ 82.6856
+### S(3/12) = 82.6856 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * -0.9937) ≈ 71.6285
+### S(4/12) = 71.6285 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * 0.3436) ≈ 74.1274
+### S(5/12) = 74.1274 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * 0.0499) ≈ 74.3508
+### S(6/12) = 74.3508 * exp((0.07 - 0.50.5^2)(1/12) + 0.5 * sqrt(1/12) * -2.5073) ≈ 47.1613
