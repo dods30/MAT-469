@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo=TRUE,
 ```
 
 ```{r}
-# Given parameters
+# parameters
 S0 = 100
 K = 110
 r = 0.00
@@ -70,7 +70,7 @@ cat("(b)   99% confidence interval: [", round(ci_lower, 2), ",", round(ci_upper,
 ```{r}
 rm(list=ls())
 
-# Given parameters
+# parameters
 S0 = 50
 K = 50
 r0 = 0.07
