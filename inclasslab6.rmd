@@ -1,0 +1,65 @@
+---
+title: "inclasslab6"
+author: "Marco Dodson"
+date: "2024-05-14"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+## (1): run a ton of simulations of the game and then count number of times the player wins by switching divide by the count of total number of simulations 
+
+## (2): P y = 1 
+
+## (3): 
+```{r}
+n = 10000
+
+# Function to simulate one game
+simulate_game <- function() {
+  doors = c("car", "goat", "goat")
+  car_door = sample(1:3, 1)  # Randomly pick a door for the car
+  player_choice = sample(1:3, 1)  # Player randomly picks a door
+  
+  if (doors[player_choice] == "car") {
+    # If the player initially chooses the door with the car,
+    # the host randomly opens one of the other two doors with a goat
+    host_choice = sample(setdiff(1:3, player_choice), 1)
+  } else {
+    # If the player initially chooses a door with a goat,
+    # the host opens the other door with a goat
+    host_choice = setdiff(which(doors == "goat"), player_choice)
+  }
+  
+  # The player switches the choice of the door
+  switch_choice = setdiff(1:3, c(player_choice, host_choice))
+  
+  # Return 1 if the player's final choice is the car, 0 otherwise
+  ifelse(doors[switch_choice] == "car", 1, 0)
+}
+```
+
+## (4): 
+```{r}
+# Simulate n games and estimate the probability of winning
+results <- replicate(n, simulate_game())
+p_hat <- mean(results)
+se <- sd(results) / sqrt(n)
+ci_lower <- p_hat - qnorm(0.995) * se
+ci_upper <- p_hat + qnorm(0.995) * se
+
+cat("Estimated probability of winning if the player switches:", p_hat, "\n")
+cat("99% Confidence Interval: [", ci_lower, ",", ci_upper, "]\n")
+
+```
+
+## (5): Since the claimed probability of 2/3 (0.6667) falls within the 99% confidence interval [0.6478983, 0.6723017], we can conclude that the simulation results support Vos Savant's claim
+
+## (6) use replicate function instead 

@@ -1,0 +1,111 @@
+---
+title: "homework6"
+author: "Marco Dodson"
+date: "2024-05-14"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+```{r}
+# Given parameters
+S0 = 100
+K = 110
+r = 0.00
+sigma = 0.13
+T = 12
+dt = 1/52  # Monthly time step
+m = T/dt
+
+# Function to simulate stock price paths and calculate option payoff
+simulate_path = function() {
+  S = numeric(m + 1)
+  S[1] = S0
+  for (i in 1:m) {
+    Z = rnorm(1)
+    S[i + 1] = S[i] * exp((r - 0.5 * sigma^2) * dt + sigma * sqrt(dt) * Z)
+  }
+  mean_price = mean(S)
+  payoff = max(mean_price - K, 0)
+  return(payoff)
+}
+
+# Function to estimate the option price and standard error
+estimate_price = function(n) {
+  payoffs = replicate(n, simulate_path())
+  price = mean(payoffs)
+  se = sd(payoffs) / sqrt(n)
+  return(list(price = price, se = se))
+}
+
+# Find the appropriate simulation size
+target_error = 0.5
+sim_size = 1000
+result = estimate_price(sim_size)
+while (result$se > target_error) {
+  sim_size = sim_size * 2
+  result = estimate_price(sim_size)
+}
+
+cat("(a) Appropriate simulation size:", sim_size, "\n")
+
+# Estimate the option price and calculate the confidence interval
+option_price = result$price
+se = result$se
+ci_lower = option_price - qnorm(0.995) * se
+ci_upper = option_price + qnorm(0.995) * se
+
+cat("(b) Estimated option price:", round(option_price, 2), "\n")
+cat("(b)   99% confidence interval: [", round(ci_lower, 2), ",", round(ci_upper, 2), "]\n")
+```
+
+```{r}
+rm(list=ls())
+
+# Given parameters
+S0 = 50
+K = 50
+r0 = 0.07
+sigma = 0.13
+T = 1
+d = 12  # Monthly time step
+dt = T/d
+
+# Generate sample path of interest rate (Vasicek model)
+r = numeric(d+1)
+r[1] = r0
+for (j in 1:d) {
+  Z = rnorm(1)
+  r[j+1] = r[j] + 0.18 * (0.086 - r[j]) * dt + 0.02 * sqrt(dt) * Z
+}
+
+# Generate sample path of asset price (Variance-Gamma model)
+S = numeric(d+1)
+S[1] = S0
+for (j in 1:d) {
+  X = rnorm(1)
+  Y = rgamma(1, shape = dt/0.15, scale = 0.15)
+  S[j+1] = S[j] * exp((r[j] + log(1 - 0.15*sigma^2/2)/0.15) * dt + sigma * sqrt(Y) * X)
+}
+
+# Calculate the payoff of the European call option
+payoff = max(S[d+1] - K, 0)
+
+# Calculate the discount factor
+discount_factor = exp(-sum(r[1:d]) * dt)
+
+# Estimate the fair price of the European call option
+option_price = payoff * discount_factor
+
+cat("Sample path of asset price:\n")
+print(S)
+cat("\nEstimated fair price of the European call option:", option_price, "\n")
+```
