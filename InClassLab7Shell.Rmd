@@ -1,0 +1,48 @@
+---
+title: "In-ClassLab7"
+author: "marco dodson"
+output: html_document
+---
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=FALSE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output; fig.keep: show all figures or just the last one in an R chunk
+```
+
+### 1. Generate a sample of random points. We will generate two vectors of uniform random numbers. Vector 1 contains x coordinates and vector 2 contains y coordinates. 
+
+```{r}
+rm(list=ls())
+n <- 10000
+x <- runif(n, 0, 1)
+y <- runif(n, 0, 1)
+```
+
+### 2. Generate a sample of 4Z
+
+```{r}
+z <- ifelse(x^2 + y^2 <= 1,4,0)
+```
+
+### 3. Estimate pi and provide a 99% confidence interval for $\pi$.
+
+```{r}
+piee <- mean(z)
+sd <- sd(z)
+
+# 99% interval 
+a <- .01
+z_score <- qnorm(1 - a/ 2)
+ci_lower <- piee - z_score * (sd / sqrt(n))
+ci_upper <- piee + z_score * (sd / sqrt(n))
+
+cat("estimated value of pie:", piee, "\n")
+cat("99% confidence interval:", ci_lower, ci_upper, "\n")
+```
+
+[fits within my range]
