@@ -1,0 +1,113 @@
+---
+title: "homework7"
+author: "marco dodson"
+output: html_document
+---
+
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+```{r}
+rm(list = ls()) # clear workspace 
+set.seed(124)
+
+# constraints
+n <- 10^5
+d <- 6
+
+# instances of quiz scores 
+scores <- matrix(0, nrow=n, ncol=d)
+scores[,1] <- rnorm(n, mean = 85, sd = 3)
+
+for (j in 1:(d-1)) { 
+    X <- runif(n, min = -1, max = 1 )
+    scores[ ,j+1] <- 26 + .7 * scores[,j] + 5 * X
+}
+
+# number of quizzes with scores above 90 for simulated qrtr
+num_above <- rowSums(scores > 90 )
+
+# instances of award amount 
+award <- ifelse(num_above >= 2 , 200,0)
+
+# estimtation of expected award amount 
+est_award <- mean(award)
+
+# standard error and 99% ci 
+se <- sd(award) / sqrt(n)
+ci_lower <- est_award - qnorm(0.995) *se
+ci_upper <- est_award + qnorm(0.995) *se
+
+cat("Expected awaard amount: $", round(est_award,2), "\n", sep="")
+cat("99% interval:[$", round(ci_lower,2), ",$", round(ci_upper,2), "]\n",sep="")
+```
+
+```{r}
+# draft code for computing n sample asset price paths of the final project
+
+# parameters
+n = 1000 # change this to 1000 for weekly or 10000 for motnhly 
+S0 = 50
+K = 50
+r0 = 0.07
+sigma = 0.13
+T = 1 # 1 monh or week 
+d = 52 # change to 12 for month or 52 for weekly
+dt = T/d
+
+# use matrices for storage - thanks for the suggestion professor. 
+r = matrix(0, nrow=n, ncol=d+1)
+S = matrix(0, nrow=n, ncol=d+1)
+r[,1] = r0
+S[,1] = S0
+
+
+# Generate sample path of asset price (Variance-Gamma model)
+for(i in 1:n){
+    for (j in 1:d) {
+        Z = rnorm(1)
+        X = rnorm(1)
+        Y = rgamma(1, shape = dt/0.15, scale = 0.15)
+        r[i, j+1] = r[i, j] + 0.18 * (0.086 - r[i, j]) * dt + 0.02 * sqrt(dt) * Z
+        S[i, j+1] = S[i, j] * exp((r[i, j] + log(1 - 0.15*sigma^2/2)/0.15) * dt + sigma * sqrt(Y) * X)
+        }
+}
+# paorff of the euro option
+payoff = pmax(S[,d+1] - K, 0)
+
+# discount facor 
+discount_factor = exp(-rowSums(r[,-1])*dt)
+
+# discounted payoff
+discounted_payoff = payoff * discount_factor
+
+#option price 
+option_price = mean(discounted_payoff)
+
+
+cat("\nEstimated fair price of the European call option:", option_price, "\n")
+```
+
+
+```{r}
+# to-do's for project still 
+## do both 1 month and 1 week time step to see differences 
+## computational time can be measured using sys.time()
+## calculate confidence interval 
+## add the GBM model for comparison  
+## use code similar to homework 3 for simulation size with error tolerance of .05 cents 
+### (C): Consider the strike price $100. What should be the simulation size with an error tolerance of 30 cents?
+### epsilon <- .30
+### payoff <- exp(-r * T) * pmax(ST - 100, 0)
+### sigma_hat <- sd(payoff)
+### n_required <- ceiling((1.96 * sigma_hat / epsilon)^2)
+### cat("Required simulation size for error tolerance of $.30:", n_required, "\n")
+```

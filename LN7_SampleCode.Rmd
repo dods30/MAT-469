@@ -1,0 +1,92 @@
+---
+title: "Lecture Note 7 Sample Code"
+author: "Yiou Li"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+# Load the packages
+library(knitr)
+library(scales) #to use percent function
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=TRUE,
+               results='asis') 
+```
+
+
+### Example. Quiz score problem. Estimate mean quiz 3 score using quiz 2 score as the control variate.
+
+```{r}
+rm(list = ls()) #clear the workspace
+#define the constants
+n=10^4
+#generate instances of quiz 2 score
+x = sample(c(2,4,6,8),n,replace=TRUE)
+mu.x = 5 #true mean of x
+#generate the fluctuations of quiz 3
+v = sample(c(-2,0,2),n,replace=TRUE)
+#generate instances of quiz 3 score
+y = x+v
+#calculate hat(beta)
+hat.beta = cov(x,y)/var(x)
+#calculate w_i's
+w = y+hat.beta*(mu.x-x)
+#Monte Carlo estimation using control variate
+est.CV = mean(w)
+#true error
+true.error.CV = abs(5-est.CV)
+
+#comparison with simple Monte Carlo estimator
+est.SMC = mean(y)
+true.error.SMC = abs(5-est.SMC)
+```
+With simulation size n=``r n`` ,the estimated mean Quiz 3 score is ``r est.SMC`` using simple Monte Carlo estimation, with a true error of ``r true.error.SMC``. Using Quiz 2 score as the control variate, the estimated mean Quiz 3 score is ``r est.CV``  with a true error of ``r true.error.CV``.
+
+### Example. Estimate Asian geometric mean call option price using the discounted payoff of the European call option as the control variate.
+
+```{r}
+rm(list=ls()) #clear the variables
+source('Sample.GBM.R') # source the code to generate sample paths of GBM
+source('ExactPrice.GBM.R') #source the code to compute B-S prices
+
+#define the constants
+S.0 = 120
+K = 125
+MT=1/4 #3-month option
+r=0.05
+sigma=0.26
+d=3  # #of times monitered during the contract
+n=10^3 # sample size
+#exact price of European call option calculated using Black-Scholes formula. This is the mean of control variate (mu_X).
+ExactEuroCall.price=ExactPrice.GBM(S.0,MT,r,sigma,K,'call')
+
+#generate sample paths
+S = Sample.GBM(S.0,MT,r,sigma,d,n)
+#generate discounted payoffs of European call option, i.e., generate samples of control variate, X.
+EuroCallPayoff=pmax(S[,d]-K,0)*exp(-r*MT)
+#generate discounted payoffs of geometric mean call option, i.e., generate samples of target random variable, Y.
+GeoMean=apply(S^(1/d),1,prod) #You must use the sample paths for European option and Asian option to create correlation!!!!!
+GeoCallPayoff=pmax(GeoMean-K,0)*exp(-r*MT)
+#calculate hat_beta
+hat.beta=cov(GeoCallPayoff,EuroCallPayoff)/var(EuroCallPayoff)
+#compute w_i's
+w = GeoCallPayoff+hat.beta*(ExactEuroCall.price-EuroCallPayoff)
+#estimate geometric mean call option price using control variate
+GeoCall.CV = mean(w) 
+
+#compute exact price of Asian geometric mean call option, true value of E(Y)
+BarT=MT*(1+1/d)/2
+Barsigma=sqrt(sigma^2*(2+1/d)/3)
+Barr=r+(Barsigma^2-sigma^2)/2
+ExactGeoCall.price=ExactPrice.GBM(S.0,BarT,Barr,Barsigma,K,'call')*exp(Barr*BarT-r*MT)
+# compute the true error of estimate using control variate
+true.error.CV = abs(ExactGeoCall.price-GeoCall.CV)
+
+#compare to simple Monte Carlo estimator
+GeoCall.SMC = mean(GeoCallPayoff) 
+true.error.SMC = abs(ExactGeoCall.price-GeoCall.SMC)
+
+```
+With initial asset price of ``r dollar(S.0)`` , risk-free rate of ``r percent(r,accuracy=0.01)`` , volatility of ``r percent(sigma,accuracy=0.01)``, maturity time of ``r MT`` years, strike price ``r dollar(K)``, asset price monitored ``r d`` times, and simulation size of ``r n``, the simple Monte Carlo estimate of Geometric Mean Asian call option price is ``r dollar(GeoCall.SMC)``, with a true error of ``r dollar(true.error.SMC)``. Using European call discounted payoff as control variate, the Monte Carlo estimate  of Geometric Mean Asian call option price is ``r dollar(GeoCall.CV)``, with a true error of ``r dollar(true.error.CV)``. 

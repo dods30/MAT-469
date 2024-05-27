@@ -1,0 +1,74 @@
+---
+title: "In-ClassLab6"
+author: "Yiou Li"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=FALSE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output; fig.keep: show all figures or just the last one in an R chunk
+```
+
+### 1. [Insert your answer here.]
+
+### 2. [Insert your answer here.]
+
+### 3. 
+
+Define the simulation size.
+
+```{r}
+rm(list=ls())
+n =
+```
+
+Our goal is to generate a sample of game results. Thus, create vectors to store the sampled door numbers and game results.
+
+```{r}
+car.door = c() #the door numbers with the car
+player.door = c() #the door numbers the player chooses
+host.open = c() #the door numbers the host opens
+player.final = c() #the door numbers the player finally switches to
+game.result=c()
+```
+
+
+For each one of the $n$ games, we need to repeat the steps described in the in-class lab 6 document. The simplest way to do this is to use a "for loop". We use "i" to denote the numbering of the game. 
+
+```{r}
+for (){
+  ### randomly pick a door for the car
+  car.door[i] = sample()
+  ### the player randomly pick a door
+  player.door[i] = sample()
+  ### the host opens a door with a goat. There are two scenarios.
+    if (){
+      available.doors = setdiff()
+      host.open[i] = sample()
+    } else{
+      host.open[i] = setdiff()
+    }
+  ### player switches the door
+  player.final[i] = setdiff()
+  ### the result of the ith game
+  game.result[i] = ifelse()
+}
+```
+
+### 4. 99% confidence interval of true probability/proportion is
+$$\hat{p}\pm 2.58\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}.$$
+
+```{r}
+est.prob = 
+est.error = 
+CI.low = 
+CI.high = 
+CI.low
+CI.high
+```
+
+### 5. [Insert your answer here.]
