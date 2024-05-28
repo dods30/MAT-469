@@ -396,6 +396,60 @@ cat(&quot;Expected awaard amount: $&quot;, round(est_award,2), &quot;\n&quot;, s
 <p>Expected awaard amount: $46.99</p>
 <pre class="r"><code>cat(&quot;99% interval:[$&quot;, round(ci_lower,2), &quot;,$&quot;, round(ci_upper,2), &quot;]\n&quot;,sep=&quot;&quot;)</code></pre>
 <p>99% interval:[$46.3,$47.68]</p>
+<pre class="r"><code># draft code for computing n sample asset price paths of the final project
+
+# parameters
+n = 1000 # change this to 1000 for weekly or 10000 for motnhly 
+S0 = 50
+K = 50
+r0 = 0.07
+sigma = 0.13
+T = 1 # 1 monh or week 
+d = 52 # change to 12 for month or 52 for weekly
+dt = T/d
+
+# use matrices for storage - thanks for the suggestion professor. 
+r = matrix(r0, nrow=n, ncol=d+1)
+S = matrix(log(S0), nrow=n, ncol=d+1)
+
+Z = matrix(rnorm(n * d),nrow=n,ncol=d)
+X = matrix(rnorm(n * d),nrow=n,ncol=d)
+Y = matrix(rgamma(n * d, shape=dt/.15 ,scale=.15), nrow=n,ncol=d)
+
+
+# Generate sample path of asset price (Variance-Gamma model)
+for (j in 1:d) {
+    r[, j + 1] = r[, j] + 0.18 * (0.086 - r[, j]) * dt + 0.02 * sqrt(dt) * Z[, j]
+    S[, j + 1] = S[, j] * exp((r[, j] + log(1 - 0.15 * sigma^2 / 2) / 0.15) * dt + sigma * sqrt(Y[, j]) * X[, j])
+}
+# paorff of the euro option
+
+payoff = pmax(S[,d+1] - K, 0)
+
+# discount facor 
+discount_factor = exp(-rowSums(r[,-1])*dt)
+
+# discounted payoff
+discounted_payoff = payoff * discount_factor
+
+#option price 
+option_price = mean(discounted_payoff)
+
+
+cat(&quot;\nEstimated fair price of the European call option:&quot;, option_price, &quot;\n&quot;)</code></pre>
+<p>Estimated fair price of the European call option: 0</p>
+<pre class="r"><code># to-do&#39;s for project still 
+## do both 1 month and 1 week time step to see differences 
+## computational time can be measured using sys.time()
+## calculate confidence interval 
+## add the GBM model for comparison  
+## use code similar to homework 3 for simulation size with error tolerance of .05 cents 
+### (C): Consider the strike price $100. What should be the simulation size with an error tolerance of 30 cents?
+### epsilon &lt;- .30
+### payoff &lt;- exp(-r * T) * pmax(ST - 100, 0)
+### sigma_hat &lt;- sd(payoff)
+### n_required &lt;- ceiling((1.96 * sigma_hat / epsilon)^2)
+### cat(&quot;Required simulation size for error tolerance of $.30:&quot;, n_required, &quot;\n&quot;)</code></pre>
 
 
 

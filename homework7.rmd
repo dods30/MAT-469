@@ -17,7 +17,6 @@ knitr::opts_chunk$set(echo=TRUE,
 
 ```{r}
 rm(list = ls()) # clear workspace 
-set.seed(124)
 
 # constraints
 n <- 10^5
@@ -64,23 +63,21 @@ d = 52 # change to 12 for month or 52 for weekly
 dt = T/d
 
 # use matrices for storage - thanks for the suggestion professor. 
-r = matrix(0, nrow=n, ncol=d+1)
-S = matrix(0, nrow=n, ncol=d+1)
-r[,1] = r0
-S[,1] = S0
+r = matrix(r0, nrow=n, ncol=d+1)
+S = matrix(S0, nrow=n, ncol=d+1)
+
+Z = matrix(rnorm(n * d),nrow=n,ncol=d)
+X = matrix(rnorm(n * d),nrow=n,ncol=d)
+Y = matrix(rgamma(n * d, shape=dt/.15 ,scale=.15), nrow=n,ncol=d)
 
 
 # Generate sample path of asset price (Variance-Gamma model)
-for(i in 1:n){
-    for (j in 1:d) {
-        Z = rnorm(1)
-        X = rnorm(1)
-        Y = rgamma(1, shape = dt/0.15, scale = 0.15)
-        r[i, j+1] = r[i, j] + 0.18 * (0.086 - r[i, j]) * dt + 0.02 * sqrt(dt) * Z
-        S[i, j+1] = S[i, j] * exp((r[i, j] + log(1 - 0.15*sigma^2/2)/0.15) * dt + sigma * sqrt(Y) * X)
-        }
+for (j in 1:d) {
+    r[, j + 1] = r[, j] + 0.18 * (0.086 - r[, j]) * dt + 0.02 * sqrt(dt) * Z[, j]
+    S[, j + 1] = S[, j] * exp((r[, j] + log(1 - 0.15 * sigma^2 / 2) / 0.15) * dt + sigma * sqrt(Y[, j]) * X[, j])
 }
 # paorff of the euro option
+
 payoff = pmax(S[,d+1] - K, 0)
 
 # discount facor 
