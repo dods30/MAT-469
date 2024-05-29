@@ -1,0 +1,110 @@
+---
+title: "In-ClassLab8"
+author: "Marco Dodson"
+output: html_document
+---
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=FALSE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output; fig.keep: show all figures or just the last one in an R chunk
+```
+
+### 1. [ X ~ U 0,.75 | e(y) = 3/4e^-x^2]
+
+### 2. Simple Monte Carlo estimator
+
+```{r}
+rm(list=ls())
+n = 1000
+x = runif(n,min=0,max=.75)
+y = (3/4) * exp(-x^2)
+mu_hat = mean(y)
+error_first = 2.58 *sd(y)/sqrt(n)
+ci_lower = mu_hat - error_first
+ci_upper = mu_hat + error_first
+
+cat("Estimated value of the integral:", mu_hat, "\n")
+cat("99% Confidence Interval: [", ci_lower, ",", ci_upper, "]\n")
+```
+
+### 3. Use X~U[0, 0.75] as control variate
+
+```{r}
+ex=.375
+beta_hat = cov(y,x)/var(x)
+y_cv = y- beta_hat * (x-ex)
+
+mu_hat_cv = mean(y_cv)
+error = 2.58 *sd(y_cv)/sqrt(n)
+
+ci_lower_cv = mu_hat_cv - error
+ci_upper_cv = mu_hat_cv + error
+
+cat("Estimated value of the integral:", mu_hat_cv, "\n")
+cat("99% Confidence Interval: [", ci_lower_cv, ",", ci_upper_cv, "]\n")
+```
+
+### 4. Use Z = e^(-X) as the control variate
+
+```{r}
+ez = (1- exp(-.75))/.75
+
+z = exp(-x)
+
+beta_hat_z = cov(y,z) / var(z)
+y_cv_z = y - beta_hat_z *(z-ez)
+
+mu_hat_cv_z = mean(y_cv_z)
+error_z = 2.58 *sd(y_cv_z)/sqrt(n)
+
+ci_lower_cv_z = mu_hat_cv_z - error_z
+ci_upper_cv_z = mu_hat_cv_z + error_z
+
+cat("Estimated value of the integral:", mu_hat_cv_z, "\n")
+cat("99% Confidence Interval: [", ci_lower_cv_z, ",", ci_upper_cv_z, "]\n")
+```
+
+
+### 5.
+```{r}
+width_first = ci_upper - ci_lower
+width_cv_x = ci_upper_cv - ci_lower_cv
+width_cv_z = ci_upper_cv_z - ci_lower_cv_z
+
+cat("Width of CI - Simple Monte Carlo: ", width_first, "\n")
+cat("Width of CI - Using X as CV: ", width_cv_x, "\n")
+cat("Width of CI - Using Z as CV: ", width_cv_z, "\n")
+
+```
+
+### 6. Compute the correlation between the target random variable and control variate
+
+```{r}
+cor_x_y = cor(x,y)
+cor_z_y = cor(z,y)
+
+cat("Correlation between X and Y: ", cor_x_y, "\n")
+cat("Correlation between Z and Y: ", cor_z_y, "\n")
+```
+
+
+### 7. Compare to the true answer.
+
+```{r}
+mu_true_moo = sqrt(pi) * (pnorm(.75 * sqrt(2)) - 0.5)
+
+error_first = abs(mu_hat - mu_true_moo)
+error_cv_x = abs(mu_hat_cv - mu_true_moo)
+error_cv_z = abs(mu_hat_cv_z - mu_true_moo)
+
+cat("True Error - Simple Monte Carlo: ", error_first, "\n")
+cat("True Error - Using X as CV: ", error_cv_x, "\n")
+cat("True Error - Using Z as CV: ", error_cv_z, "\n")
+
+```
+
+[True Error - Simple Monte Carlo: 0.0004360749 - and no it doesn't agree ]
