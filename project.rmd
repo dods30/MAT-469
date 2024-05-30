@@ -1,0 +1,123 @@
+---
+title: "project"
+author: "marco dodson"
+output: html_document
+---
+
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+```{r}
+
+# Parameters
+S0 = 50
+K = 50
+r0 = 0.07
+sigma = 0.13
+T = 1 # 1 year
+d_month = 12 # monthly time steps
+d_week = 52 # weekly time steps
+
+simulate_option_price <- function(d, n) {
+  dt = T / d
+  logS = matrix(log(S0), nrow = n, ncol = d + 1)
+  r = matrix(r0, nrow = n, ncol = d + 1)
+  Z = matrix(rnorm(n * d), nrow = n, ncol = d)
+  X = matrix(rnorm(n * d), nrow = n, ncol = d)
+  Y = matrix(rgamma(n * d, shape = dt / 0.15, scale = 0.15), nrow = n, ncol = d)
+  
+  # Generate sample path of asset price (Variance-Gamma model and Vasicek Model)
+  for (j in 1:d) {
+    r[, j + 1] = r[, j] + 0.18 * (0.086 - r[, j]) * dt + 0.02 * sqrt(dt) * Z[, j]
+    logS[, j + 1] <- logS[, j] + ((r[, j] + log(1 - 0.15 * sigma^2 / 2) / 0.15) * dt) + sigma * sqrt(Y[, j]) * X[, j]
+  }
+  
+  # Calculate the payoff at maturity
+  payoff = pmax(exp(logS[, d + 1]) - K, 0)
+  
+  # Discount factor
+  discount_factor = exp(-rowSums(r[, -1] * dt))
+  
+  # Discounted payoff and option price
+  discounted_payoff = payoff * discount_factor
+  option_price = mean(discounted_payoff)
+  return(list(option_price = option_price, payoff = payoff, discount_factor = discount_factor, logS = logS, r = r))
+}
+
+# Run simulations for both time steps
+n_month = 40000
+n_week = 40000
+
+start_time_month = Sys.time()
+result_month = simulate_option_price(d_month, n_month)
+end_time_month = Sys.time()
+
+start_time_week = Sys.time()
+result_week = simulate_option_price(d_week, n_week)
+end_time_week = Sys.time()
+
+cat("\nEstimated fair price of the European call option (Monthly):", result_month$option_price, "\n")
+cat("Computational time (Monthly):", end_time_month - start_time_month, "seconds\n")
+
+cat("\nEstimated fair price of the European call option (Weekly):", result_week$option_price, "\n")
+cat("Computational time (Weekly):", end_time_week - start_time_week, "seconds\n")
+
+# Confidence Interval Calculation
+conf_interval <- function(payoff, discount_factor, alpha = 0.05) {
+  discounted_payoff = payoff * discount_factor
+  option_price = mean(discounted_payoff)
+  std_error = sd(discounted_payoff) / sqrt(length(discounted_payoff))
+  margin_error = qnorm(1 - alpha/2) * std_error
+  lower_bound = option_price - margin_error
+  upper_bound = option_price + margin_error
+  return(c(lower_bound, upper_bound))
+}
+
+# Example of confidence interval for monthly time step
+conf_int_month = conf_interval(result_month$payoff, result_month$discount_factor)
+cat("Confidence Interval (Monthly):", conf_int_month, "\n")
+conf_int_weekly = conf_interval(result_week$payoff, result_week$discount_factor)
+cat("Confidence Interval (Weekly):", conf_int_weekly, "\n")
+
+# GBM Model Comparison
+simulate_gbm <- function(d, n) {
+  dt = T / d
+  logS = matrix(log(S0), nrow = n, ncol = d + 1)
+  Z = matrix(rnorm(n * d), nrow = n, ncol = d)
+  
+  for (j in 1:d) {
+    logS[, j + 1] = logS[, j] + (r0 - sigma^2 / 2) * dt + sigma * sqrt(dt) * Z[, j]
+  }
+  
+  payoff = pmax(exp(logS[, d + 1]) - K, 0)
+  discount_factor = exp(-r0 * T)
+  discounted_payoff = payoff * discount_factor
+  option_price = mean(discounted_payoff)
+  return(option_price)
+}
+
+# Calculate option price using GBM model
+option_price_gbm_month = simulate_gbm(d_month, n_month)
+option_price_gbm_week = simulate_gbm(d_week, n_week)
+
+cat("\nEstimated fair price of the European call option using GBM (Monthly):", option_price_gbm_month, "\n")
+cat("Estimated fair price of the European call option using GBM (Weekly):", option_price_gbm_week, "\n")
+
+# Simulation Size Calculation with Error Tolerance
+epsilon = 0.05
+sigma_hat_month = sd(result_month$payoff * result_month$discount_factor)
+n_required_month = ceiling((1.96 * sigma_hat_month / epsilon)^2)
+cat("Required simulation size for error tolerance of $0.05 (Monthly):", n_required_month, "\n")
+
+sigma_hat_week = sd(result_week$payoff * result_week$discount_factor)
+n_required_week = ceiling((1.96 * sigma_hat_week / epsilon)^2)
+cat("Required simulation size for error tolerance of $0.05 (Weekly):", n_required_week, "\n")
+```

@@ -1,0 +1,54 @@
+---
+title: "In-Class Lab 8 Shell"
+author: "Yiou Li"
+output: html_document
+---
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(knitr)
+###settings for R chunks
+opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning=FALSE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output; fig.keep: show all figures or just the last one in an R chunk
+```
+
+### 1. [Insert your answer here.]
+
+### 2. Simple Monte Carlo estimator
+
+```{r}
+rm(list=ls())
+
+```
+
+### 3. Use X~U[0, 0.75] as control variate
+
+```{r}
+
+```
+
+### 4. Use Z = e^(-X) as the control variate
+
+```{r}
+
+```
+
+
+### 5. [Insert your answer here.]
+
+### 6. Compute the correlation between the target random variable and control variate
+
+```{r}
+
+```
+
+
+### 7. Compare to the true answer.
+
+```{r}
+
+```
+
+[Insert your answer here.]

@@ -1,0 +1,76 @@
+---
+title: "homework8"
+author: "marco dodson"
+output: html_document
+---
+
+---
+```{r echo=FALSE,message=FALSE,warning=TRUE,result='asis'}
+##load packages
+library(knitr)
+###settings for R chunks
+knitr::opts_chunk$set(echo=TRUE,
+               message=FALSE,
+               warning = TRUE,
+               results='asis') #echo: whether prints the R code; message: whether shows the message outputs; warning: whether shows the warning messages; results: whether contain ## in front of the R output # nolint
+```
+
+```{r}
+source('ExactPrice.GBM.R')
+source('Sample.GBM.R')
+n = 10^5
+s0 = 100
+K = 110
+sigma = 0.4 
+r = 0
+d = 12 
+MT = d/52
+
+#exact pric of the asian geometric mean call option. 
+BarT = MT * ( 1 + 1 / d) / 2
+BarSigma = sqrt( sigma^2 * ( 2 + 1 / d) / 3)
+Barr=r+(BarSigma^2-sigma^2)/2
+ExactGeoCall.price=ExactPrice.GBM(s0,BarT,Barr,BarSigma,K,'call')*exp(Barr*BarT-r*MT)
+
+
+S = Sample.GBM(s0,MT,r,sigma,d,n)
+
+geomean = apply(S,1,function(x) exp(mean(log(x))))
+geocallpayoff = pmax(geomean - K,0) *exp(-r *MT)
+
+arithmeticmean = rowMeans(S)
+arithmeticcallpayoff = pmax(arithmeticmean - K,0) *exp(-r*MT)
+
+beta_hat = cov(arithmeticcallpayoff, geocallpayoff)/ var(geocallpayoff)
+M = arithmeticcallpayoff + beta_hat * (ExactGeoCall.price - geocallpayoff)
+
+Call_cv = mean(M)
+error = 2.58 * sd(M)/sqrt(n)
+ci_lower = Call_cv -error
+ci_upper = Call_cv +error
+cat("Estimated price using geometric mean as control variate:", Call_cv, "\n")
+cat("99% Confidence Interval: [", ci_lower, ",", ci_upper, "]\n")
+```
+
+```{r}
+ExactEuroCall.price = ExactPrice.GBM(s0,MT,r,sigma,K,'call')
+Eurocallpayoff = pmax(S[,d] - K,0) * exp(-r*MT)
+
+beta_hat_euro = cov(arithmeticcallpayoff, Eurocallpayoff) / var(Eurocallpayoff)
+M_euro = arithmeticcallpayoff + beta_hat_euro * (ExactEuroCall.price - Eurocallpayoff)
+
+call_cv_euro = mean(M_euro)
+error_euro = 2.58*sd(M_euro) / sqrt(n)
+ci_lower_euro = call_cv_euro - error_euro
+ci_upper_euro = call_cv_euro + error_euro
+cat("Estimated price using geometric mean as control variate:", call_cv_euro, "\n")
+cat("99% Confidence Interval: [", ci_lower_euro, ",", ci_upper_euro, "]\n")
+```
+
+```{r}
+width_first = ci_upper - ci_lower
+width_second = ci_upper_euro - ci_lower_euro
+
+cat("Width of CI using Geometric Asian Call as Control Variate:", width_first, "\n")
+cat("Width of CI using European Call as Control Variate:", width_second, "\n")
+```
